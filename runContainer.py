@@ -2,6 +2,7 @@
 # coding=utf-8
 import docker
 import os
+import time
 
 VERSION = 1.9
 TIMEOUT = 10
@@ -17,15 +18,22 @@ def readConfig():
 #imageName, tests = readConfig()
 imageName = 'ubuntu:12.04'
 tests = ['test1.py', 'test2.py']
-cli = docker.Client(base_url='unix://var/run/docker.sock', version=str(VERSION), timeout=TIMEOUT)
+cli = docker.Client(base_url='unix://var/run/docker.sock', version='auto', timeout=TIMEOUT)
 cli.images(name = imageName)
 containers = []
+IDs = []
 curPath = os.getcwd()
+print curPath
 for test in tests:
-	print test
-        containers.append(cli.create_container(image = imageName, command =  'ls'))
+	containers.append(cli.create_container(image = imageName, command =  'python /mnt/testVol/' + test, volumes='/mnt/testVol', host_config=docker.utils.create_host_config(binds={
+        curPath: {
+            'bind': '/mnt/testVol',
+            #'ro': False
+        }
+    })))
 	ID = containers[-1].get('Id')
+	IDs.append(ID)
 	print ID
-        os.system('sudo cp ' + test + ' /var/lib/docker/aufs/mnt/'+ ID+'/'+test)
-        cli.start(ID)
-        print cli.logs(ID)
+	#os.system('docker cp ' + test + ' /var/lib/docker/aufs/mnt/'+ ID+'/'+test)
+	cli.start(ID)
+	print cli.logs(ID)
