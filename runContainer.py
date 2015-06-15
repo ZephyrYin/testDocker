@@ -36,4 +36,7 @@ for test in tests:
 	print ID
 	#os.system('docker cp ' + test + ' /var/lib/docker/aufs/mnt/'+ ID+'/'+test)
 	cli.start(ID)
-	print cli.logs(ID)
+	log = cli.logs(ID, True, True, True)
+	for l in log:
+		print l
+	#print log
